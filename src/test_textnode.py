@@ -52,7 +52,5 @@ class TestTextNodeToHtml(unittest.TestCase):
         self.assertEqual(html_node.tag,"b")
         self.assertEqual(html_node.value,"Bold Text")
 
-
-
 if __name__ == "__main__":
     unittest.main()
