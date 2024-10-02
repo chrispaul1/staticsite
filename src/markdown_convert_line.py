@@ -19,6 +19,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             continue
         split_nodes=[]
         node_splits = old_node.text.split(delimiter)
+
         if len(node_splits) % 2 == 0:
             raise ValueError("Invalid markdown, formatted section not closed")
         for i in range(0,len(node_splits)):
@@ -53,6 +54,9 @@ def extract_markdown_links(text):
 def split_nodes_image(old_nodes):
     new_nodes = []
     for old_node in old_nodes:
+        if old_node.text_type != text_type_text:
+            new_nodes.append(old_node)
+            continue
         node_splits = re.split(r"(\!\[.*?\))",old_node.text)
         for i in range(0,len(node_splits)):
             split_nodes=[]
@@ -70,6 +74,9 @@ def split_nodes_image(old_nodes):
 def split_nodes_link(old_nodes):
     new_nodes = []
     for old_node in old_nodes:
+        if old_node.text_type != text_type_text:
+            new_nodes.append(old_node)
+            continue
         node_splits = re.split(r"(\[.*?\))",old_node.text)
         for i in range(0,len(node_splits)):
             split_nodes=[]
@@ -83,6 +90,27 @@ def split_nodes_link(old_nodes):
                 split_nodes.append(TextNode(anchor_text.group(1),text_type_link,url_text.group(1)))
             new_nodes.extend(split_nodes)
     return new_nodes
+
+def text_to_textnode(text):
+    new_textnode = TextNode(text,text_type_text)
+    bold_nodes = split_nodes_delimiter([new_textnode],"**",text_type_bold)
+    italic_nodes = split_nodes_delimiter(bold_nodes,"*",text_type_italic)
+    code_nodes = split_nodes_delimiter(italic_nodes,"`",text_type_code)
+    image_nodes = split_nodes_image(code_nodes)
+    link_nodes = split_nodes_link(image_nodes)
+    return link_nodes
+
+def markdowns_to_blocks(markdown):
+    blocks = markdown.split("\n\n")
+    filtered_blocks = []
+    for block in blocks:
+        if block == "":
+            continue
+        block = block.strip()
+        filtered_blocks.append(block)
+    blocks = [i for i in blocks if i != ""]
+    blocks = list(map(lambda x: x.strip(),blocks))
+    return blocks
 
 
 
